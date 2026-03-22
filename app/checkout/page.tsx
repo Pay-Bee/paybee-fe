@@ -4,8 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "../../lib/api";
-import type { CartItem, Game } from "shared";
-import { BOOKING_FEE_LKR } from "shared";
+import type { CartItem, Game } from "../../lib/types";
+import { BOOKING_FEE_LKR } from "../../lib/types";
 
 // ── Normalised item for display + submission ──────────────────
 interface CheckoutItem {

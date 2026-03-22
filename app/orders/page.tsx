@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import type { Order, OrdersListResponse, OrderStatus } from "shared";
+import type { Order, OrdersListResponse, OrderStatus } from "../../lib/types";
 import api from "../../lib/api";
 
 const PAGE_SIZE = 25;

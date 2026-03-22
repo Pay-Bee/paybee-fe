@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import api from "../../lib/api";
-import type { UserProfile } from "shared";
+import type { UserProfile } from "../../lib/types";
 
 interface SearchResult {
   id: number;

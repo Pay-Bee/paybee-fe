@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import api from "../../lib/api";
-import type { GameListItem } from "shared";
+import type { GameListItem } from "../../lib/types";
 
 // ── Constants ─────────────────────────────────────────────────
 const PAGE_SIZE = 40;

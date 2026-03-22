@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
-import type { UserProfile } from "shared";
+import type { UserProfile } from "../../lib/types";
 
 function SuccessBanner({ msg }: { msg: string }) {
   return (

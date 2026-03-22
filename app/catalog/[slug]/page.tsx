@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import type { Game, Platform } from "shared";
+import type { Game, Platform } from "../../../lib/types";
 import MediaSlider from "./MediaSlider";
 import PurchasePanel from "./PurchasePanel";
 
