@@ -207,9 +207,23 @@ export default function CatalogPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const name = new URLSearchParams(window.location.search).get("name");
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name");
     if (name) setSearch(name);
+    const p = Number(params.get("page"));
+    if (p > 0) setPage(p);
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (page === 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(page));
+    }
+    const qs = params.toString();
+    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+  }, [page]);
 
   // Sidebar filters
   const [priceMin, setPriceMin] = useState(0);

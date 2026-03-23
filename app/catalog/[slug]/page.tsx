@@ -3,7 +3,7 @@ import type { Game, Platform } from "../../../lib/types";
 import MediaSlider from "./MediaSlider";
 import PurchasePanel from "./PurchasePanel";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 async function getGame(slug: string): Promise<Game | null> {
   try {
@@ -100,6 +100,9 @@ export default async function GameDetailPage({
     | { type: "image"; url: string };
 
   const slides: Slide[] = [];
+  if (game.cover_img_url) {
+    slides.push({ type: "image", url: game.cover_img_url });
+  }
   if (game.trailer_video_url) {
     const embedUrl = getYouTubeEmbedUrl(game.trailer_video_url);
     slides.push({
