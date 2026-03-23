@@ -226,6 +226,7 @@ export default function CatalogPage() {
     }
     const qs = params.toString();
     window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
   // Sidebar filters
@@ -290,14 +291,14 @@ export default function CatalogPage() {
   };
 
   return (
-    <div style={{ background: "#080810", minHeight: "100vh" }}>
+    <div className="overflow-x-hidden" style={{ background: "#080810", minHeight: "100vh" }}>
       {/* Ambient glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{ background: "radial-gradient(ellipse 70% 40% at 50% 0%, rgba(251,191,36,0.05) 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 py-10">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6 py-10">
 
         {/* ── Page header ─────────────────────────────────────── */}
         <div className="mb-6 flex items-center gap-3">

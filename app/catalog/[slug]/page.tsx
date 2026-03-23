@@ -189,13 +189,17 @@ export default async function GameDetailPage({
           </div>
         </div>
 
+        {/* ── Media slider — full width above both columns ─────── */}
+        {slides.length > 0 && (
+          <div className="mb-8">
+            <MediaSlider slides={slides} />
+          </div>
+        )}
+
         {/* ── Two-column body ──────────────────────────────────── */}
         <div className="flex flex-col lg:flex-row gap-8 pb-20">
-          {/* Left column — below purchase panel on mobile */}
+          {/* Left column — features + descriptions */}
           <div className="flex-1 min-w-0 space-y-8 order-2 lg:order-1">
-            {/* Media slider */}
-            {slides.length > 0 && <MediaSlider slides={slides} />}
-
             {/* Features */}
             {game.features && game.features.length > 0 && (
               <div>
