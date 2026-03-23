@@ -438,55 +438,7 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              {/* Payment method */}
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  Payment Method
-                </p>
-                <div className="space-y-2">
-                  {(["payzy", "koko"] as const).map((gw) => {
-                    const info = installments[gw];
-                    const active = gateway === gw;
-                    return (
-                      <button
-                        key={gw}
-                        onClick={() => setGateway(gw)}
-                        className="w-full flex items-center justify-between rounded-xl px-3 py-2.5 transition-all"
-                        style={{
-                          background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-                          border: active ? `1.5px solid ${info.color}` : "1.5px solid rgba(255,255,255,0.08)",
-                          boxShadow: active ? `0 0 14px ${info.color}25` : "none",
-                        }}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                            style={{
-                              borderColor: active ? info.color : "rgba(255,255,255,0.2)",
-                              background: active ? info.color : "transparent",
-                            }}
-                          >
-                            {active && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
-                          </span>
-                          <img
-                            src={`/payment-opt/${gw}.png`}
-                            alt={gw}
-                            className="h-5 w-auto object-contain"
-                          />
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-                            {info.count} installments
-                          </p>
-                          <p className="text-xs font-bold text-white">
-                            LKR {Math.ceil(total / info.count).toLocaleString()} / mo
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* Payment method (Payzy / Koko) — hidden until integration is live */}
 
               {/* Acknowledgement checkboxes */}
               <div

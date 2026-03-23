@@ -30,7 +30,7 @@ function SkeletonCard() {
       className="rounded-xl overflow-hidden border animate-pulse"
       style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.07)" }}
     >
-      <div style={{ height: "245px", background: "rgba(255,255,255,0.06)" }} />
+      <div className="aspect-video" style={{ background: "rgba(255,255,255,0.06)" }} />
       <div className="px-3 pt-2 pb-3" style={{ background: "rgba(10,10,20,0.95)" }}>
         <div className="h-3 rounded mb-1" style={{ background: "rgba(255,255,255,0.08)", width: "80%" }} />
         <div className="h-3 rounded mb-3" style={{ background: "rgba(255,255,255,0.06)", width: "55%" }} />
@@ -52,8 +52,8 @@ function GameCard({ game }: { game: GameListItem }) {
       className="game-card group block rounded-xl overflow-hidden border"
       style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.09)" }}
     >
-      {/* Portrait image */}
-      <div className="relative overflow-hidden" style={{ height: "245px" }}>
+      {/* Cover image — 16:9 so landscape art fills naturally */}
+      <div className="relative overflow-hidden aspect-video">
         {game.cover_img_url ? (
           <img
             src={game.cover_img_url}

@@ -32,11 +32,11 @@ const FAQS = [
   },
   {
     q: "What payment methods are supported?",
-    a: "We support Payzy and Koko — both are trusted Sri Lankan digital payment platforms that let you pay in LKR. Installment plans are available through Koko.",
+    a: "We support local LKR payments. More payment options coming soon.",
   },
   {
     q: "Is my payment secure?",
-    a: "Yes. All transactions are processed securely through Payzy or Koko. We never store your card details. Our site uses HTTPS end-to-end.",
+    a: "Yes. All transactions are processed securely. We never store your card details. Our site uses HTTPS end-to-end.",
   },
   {
     q: "How do I redeem my game key?",
@@ -297,7 +297,7 @@ export default function HelpPage() {
                 visible={stepsVisible}
                 delay={240}
                 title="Pay in LKR"
-                desc="Checkout securely via Payzy or Koko — pay in rupees with installment options"
+                desc="Checkout securely — pay in LKR"
                 accent="251,191,36"
                 icon={
                   <svg className="w-9 h-9" style={{ color: "#fbbf24" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -342,7 +342,7 @@ export default function HelpPage() {
               <Arrow visible={stepsVisible} down />
               <StepCard num={3} visible={stepsVisible} delay={240}
                 title="Pay in LKR"
-                desc="Checkout securely via Payzy or Koko — pay in rupees with installment options"
+                desc="Checkout securely — pay in LKR"
                 icon={<svg className="w-9 h-9" style={{ color: "#fbbf24" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" strokeLinecap="round" /><path d="M6 15h4" strokeLinecap="round" /></svg>}
               />
               <Arrow visible={stepsVisible} down />
@@ -355,26 +355,7 @@ export default function HelpPage() {
             </div>
           </div>
 
-          {/* Payment logos strip */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-16">
-            <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>
-              Accepted payments
-            </p>
-            <div className="flex items-center gap-3">
-              {[
-                { name: "Payzy", src: "/payment-opt/payzy.png" },
-                { name: "Koko", src: "/payment-opt/koko.png" },
-              ].map(({ name, src }) => (
-                <div
-                  key={name}
-                  className="rounded-xl px-4 py-2 border flex items-center"
-                  style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)" }}
-                >
-                  <img src={src} alt={name} className="h-6 w-auto object-contain" />
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Payment logos strip — hidden until Payzy/Koko integration is live */}
         </section>
 
         {/* ── Trust Signals ─────────────────────────────────── */}
@@ -396,7 +377,7 @@ export default function HelpPage() {
               <TrustBadge
                 visible={trustVisible} delay={0}
                 title="Secure Checkout"
-                sub="HTTPS + encrypted payment processing via Payzy & Koko"
+                sub="HTTPS + encrypted payment processing"
                 icon={<svg className="w-5 h-5" style={{ color: "#fbbf24" }} viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg>}
               />
               <TrustBadge

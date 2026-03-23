@@ -312,42 +312,7 @@ export default async function GameDetailPage({
                 )}
               </div>
 
-              {/* Installments */}
-              {finalLkr > 0 && (
-                <div className="space-y-2 border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                  {/* Payzy */}
-                  <div
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,107,53,0.2)" }}
-                  >
-                    <img src="/payment-opt/payzy.png" alt="Payzy" className="h-5 w-auto object-contain" />
-                    <div className="text-right">
-                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        4 installments
-                      </p>
-                      <p className="text-xs font-bold text-white">
-                        LKR {Math.ceil(finalLkr / 4).toLocaleString()} / mo
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Koko */}
-                  <div
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,200,83,0.2)" }}
-                  >
-                    <img src="/payment-opt/koko.png" alt="Koko" className="h-5 w-auto object-contain" />
-                    <div className="text-right">
-                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                        3 installments
-                      </p>
-                      <p className="text-xs font-bold text-white">
-                        LKR {Math.ceil(finalLkr / 3).toLocaleString()} / mo
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Installments (Payzy / Koko) — hidden until integration is live */}
 
               {/* Buy buttons */}
               <PurchasePanel

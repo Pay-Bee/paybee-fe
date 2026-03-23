@@ -284,36 +284,7 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {/* Installments */}
-              <div className="space-y-2">
-                {/* Payzy */}
-                <div
-                  className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,107,53,0.2)" }}
-                >
-                  <img src="/payment-opt/payzy.png" alt="Payzy" className="h-5 w-auto object-contain" />
-                  <div className="text-right">
-                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>4 easy installments</p>
-                    <p className="text-xs font-bold text-white">
-                      LKR {Math.ceil(total / 4).toLocaleString()} / mo
-                    </p>
-                  </div>
-                </div>
-
-                {/* Koko */}
-                <div
-                  className="flex items-center justify-between rounded-xl px-3 py-2.5"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,200,83,0.2)" }}
-                >
-                  <img src="/payment-opt/koko.png" alt="Koko" className="h-5 w-auto object-contain" />
-                  <div className="text-right">
-                    <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>3 easy installments</p>
-                    <p className="text-xs font-bold text-white">
-                      LKR {Math.ceil(total / 3).toLocaleString()} / mo
-                    </p>
-                  </div>
-                </div>
-              </div>
+              {/* Installments (Payzy / Koko) — hidden until integration is live */}
 
               {/* CTA */}
               <button
