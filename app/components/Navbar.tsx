@@ -15,7 +15,7 @@ interface SearchResult {
   discount_percent: number;
 }
 
-function NavSearch() {
+function NavSearch({ fullWidth }: { fullWidth?: boolean }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -63,7 +63,7 @@ function NavSearch() {
   }
 
   return (
-    <div ref={ref} className="relative w-64">
+    <div ref={ref} className={`relative ${fullWidth ? "w-full" : "w-64"}`}>
       <div
         className="flex items-center gap-2 rounded-lg px-3 py-1.5 border transition-colors"
         style={{
@@ -313,6 +313,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [requestOpen, setRequestOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -348,8 +349,14 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleLogout = async () => {
     setOpen(false);
+    setMobileMenuOpen(false);
     await api.post("/auth/logout").catch(() => {});
     localStorage.clear();
     sessionStorage.clear();
@@ -357,122 +364,232 @@ export default function Navbar() {
     window.location.href = "/";
   };
 
+  const handleRequestGame = () => {
+    setMobileMenuOpen(false);
+    if (!user) {
+      window.location.href = `/login?returnTo=${encodeURIComponent(pathname)}`;
+    } else {
+      setRequestOpen(true);
+    }
+  };
+
   const displayName = user?.name || user?.email || "";
 
   return (
     <>
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a12]/80 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center">
-          <img src="/logo/pay-bee-logo.png" alt="Pay-Bee" className="h-8 w-auto" />
-        </Link>
+      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a12]/80 backdrop-blur">
+        {/* ── Main bar ─────────────────────────────────────────── */}
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          {/* Logo */}
+          <Link href="/" className="flex items-center">
+            <img src="/logo/pay-bee-logo.png" alt="Pay-Bee" className="h-8 w-auto" />
+          </Link>
 
-        <div className="flex items-center gap-6 text-sm">
-          <Link
-            href="/catalog"
-            className="font-semibold text-white hover:text-yellow-400 transition-colors"
-          >
-            Game Store
-          </Link>
-          <Link
-            href="/help"
-            className="font-semibold text-white hover:text-yellow-400 transition-colors"
-          >
-            Help
-          </Link>
+          {/* Desktop nav links */}
+          <div className="hidden md:flex items-center gap-6 text-sm">
+            <Link href="/catalog" className="font-semibold text-white hover:text-yellow-400 transition-colors">
+              Game Store
+            </Link>
+            <Link href="/help" className="font-semibold text-white hover:text-yellow-400 transition-colors">
+              Help
+            </Link>
+          </div>
+
+          {/* Desktop search */}
+          <div className="hidden md:block">
+            <NavSearch />
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
+            {/* Request Game — desktop only */}
+            <button
+              onClick={handleRequestGame}
+              className="hidden md:flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all hover:border-yellow-400/60 hover:text-yellow-400"
+              style={{ borderColor: "rgba(251,191,36,0.25)", color: "rgba(255,255,255,0.7)" }}
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Request
+            </button>
+
+            {/* Cart icon */}
+            <button
+              onClick={() => {
+                if (!user) {
+                  window.location.href = "/login?returnTo=%2Fcart";
+                } else {
+                  router.push("/cart");
+                }
+              }}
+              className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Cart"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-black text-black"
+                  style={{ background: "#fbbf24" }}
+                >
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* User menu — desktop only */}
+            <div className="hidden md:block">
+              {user ? (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setOpen((v) => !v)}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors"
+                  >
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="avatar" className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20" />
+                    ) : (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
+                        <svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                        </svg>
+                      </span>
+                    )}
+                    <span className="max-w-[140px] truncate text-sm text-gray-200">{displayName}</span>
+                    <svg
+                      className={`h-3.5 w-3.5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                    >
+                      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {open && (
+                    <div className="absolute right-0 mt-2 w-48 rounded-xl border border-white/10 bg-[#13131f] py-1 shadow-xl">
+                      <button
+                        onClick={() => { setOpen(false); router.push("/account"); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                      >
+                        <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                        </svg>
+                        My Account
+                      </button>
+                      <button
+                        onClick={() => { setOpen(false); router.push("/orders"); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                      >
+                        <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Orders
+                      </button>
+                      <div className="my-1 border-t border-white/10" />
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href={`/login?returnTo=${encodeURIComponent(pathname)}`}
+                  className="rounded-lg bg-yellow-400 px-4 py-1.5 text-sm font-bold text-black hover:bg-yellow-300 transition-colors tracking-wide"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+
+            {/* Hamburger — mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
-        <NavSearch />
-
-        <div className="flex items-center gap-3">
-          {/* Request Game button */}
-          <button
-            onClick={() => {
-              if (!user) {
-                window.location.href = `/login?returnTo=${encodeURIComponent(pathname)}`;
-              } else {
-                setRequestOpen(true);
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all hover:border-yellow-400/60 hover:text-yellow-400"
-            style={{ borderColor: "rgba(251,191,36,0.25)", color: "rgba(255,255,255,0.7)" }}
+        {/* ── Mobile menu ───────────────────────────────────────── */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden border-t px-4 py-4 space-y-3"
+            style={{ borderColor: "rgba(255,255,255,0.08)", background: "#0a0a12" }}
           >
-            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Request
-          </button>
+            {/* Search */}
+            <NavSearch fullWidth />
 
-          {/* Cart icon */}
-          <button
-            onClick={() => {
-              if (!user) {
-                window.location.href = "/login?returnTo=%2Fcart";
-              } else {
-                router.push("/cart");
-              }
-            }}
-            className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Cart"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            {cartCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-black text-black"
-                style={{ background: "#fbbf24" }}
+            {/* Nav links */}
+            <div className="flex flex-col gap-1">
+              <Link
+                href="/catalog"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
               >
-                {cartCount > 9 ? "9+" : cartCount}
-              </span>
-            )}
-          </button>
-
-        <div>
-          {user ? (
-            <div className="relative" ref={dropdownRef}>
-              {/* Avatar + name trigger */}
-              <button
-                onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/10 transition-colors"
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt="avatar"
-                    className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20"
-                  />
-                ) : (
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
-                    <svg
-                      className="h-4 w-4 text-gray-300"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                    </svg>
-                  </span>
-                )}
-                <span className="max-w-[140px] truncate text-sm text-gray-200">
-                  {displayName}
-                </span>
-                <svg
-                  className={`h-3.5 w-3.5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
-              </button>
+                Game Store
+              </Link>
+              <Link
+                href="/help"
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Help
+              </Link>
+            </div>
 
-              {/* Dropdown */}
-              {open && (
-                <div className="absolute right-0 mt-2 w-48 rounded-xl border border-white/10 bg-[#13131f] py-1 shadow-xl">
+            {/* Request Game */}
+            <button
+              onClick={handleRequestGame}
+              className="w-full flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm font-bold transition-all hover:border-yellow-400/60 hover:text-yellow-400"
+              style={{ borderColor: "rgba(251,191,36,0.25)", color: "rgba(255,255,255,0.7)" }}
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Request a Game
+            </button>
+
+            {/* User section */}
+            <div className="border-t pt-3" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+              {user ? (
+                <>
+                  {/* User info */}
+                  <div className="flex items-center gap-3 px-3 py-2 mb-1">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="avatar" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20 flex-shrink-0" />
+                    ) : (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20 flex-shrink-0">
+                        <svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                        </svg>
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-200 truncate">{displayName}</span>
+                  </div>
                   <button
-                    onClick={() => { setOpen(false); router.push("/account"); }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                    onClick={() => { setMobileMenuOpen(false); router.push("/account"); }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
                   >
                     <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
@@ -480,41 +597,38 @@ export default function Navbar() {
                     My Account
                   </button>
                   <button
-                    onClick={() => { setOpen(false); router.push("/orders"); }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                    onClick={() => { setMobileMenuOpen(false); router.push("/orders"); }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
                   >
                     <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     Orders
                   </button>
-                  <div className="my-1 border-t border-white/10" />
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                   >
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     Sign Out
                   </button>
-                </div>
+                </>
+              ) : (
+                <Link
+                  href={`/login?returnTo=${encodeURIComponent(pathname)}`}
+                  className="block w-full rounded-lg bg-yellow-400 px-4 py-2.5 text-center text-sm font-bold text-black hover:bg-yellow-300 transition-colors"
+                >
+                  Sign In
+                </Link>
               )}
             </div>
-          ) : (
-            <Link
-              href={`/login?returnTo=${encodeURIComponent(pathname)}`}
-              className="rounded-lg bg-yellow-400 px-4 py-1.5 text-sm font-bold text-black hover:bg-yellow-300 transition-colors tracking-wide"
-            >
-              Sign In
-            </Link>
-          )}
           </div>
-        </div>
-      </div>
-    </nav>
+        )}
+      </nav>
 
-    {requestOpen && <RequestGameModal onClose={() => setRequestOpen(false)} />}
-  </>
+      {requestOpen && <RequestGameModal onClose={() => setRequestOpen(false)} />}
+    </>
   );
 }

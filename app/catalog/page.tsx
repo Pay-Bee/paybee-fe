@@ -126,6 +126,11 @@ function PriceSlider({
   const [hi, setHi] = useState(max);
   const emit = useRef(onChange);
   useEffect(() => { emit.current = onChange; });
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedEmit = (lo: number, hi: number) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => emit.current(lo, hi), 400);
+  };
 
   const loPercent = (lo / PRICE_MAX) * 100;
   const hiPercent = (hi / PRICE_MAX) * 100;
@@ -147,7 +152,7 @@ function PriceSlider({
           onChange={(e) => {
             const v = Math.min(Number(e.target.value), hi - 500);
             setLo(v);
-            emit.current(v, hi);
+            debouncedEmit(v, hi);
           }}
           className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
           style={{ zIndex: lo > PRICE_MAX - 1000 ? 5 : 3 }}
@@ -156,7 +161,7 @@ function PriceSlider({
           onChange={(e) => {
             const v = Math.max(Number(e.target.value), lo + 500);
             setHi(v);
-            emit.current(lo, v);
+            debouncedEmit(lo, v);
           }}
           className="absolute inset-0 w-full opacity-0 cursor-pointer h-full"
           style={{ zIndex: 4 }}
@@ -196,23 +201,21 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default function CatalogPage() {
   const [games, setGames] = useState<GameListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    const p = Number(new URLSearchParams(window.location.search).get("page"));
+    return p > 0 ? p : 1;
+  });
   const [loading, setLoading] = useState(true);
 
   // Sort (top bar)
   const [sort, setSort] = useState<SortValue>("newest");
   const [activeSortLabel, setActiveSortLabel] = useState("All");
 
-  // Search (populated from navbar "See all results" ?name= param)
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const name = params.get("name");
-    if (name) setSearch(name);
-    const p = Number(params.get("page"));
-    if (p > 0) setPage(p);
-  }, []);
+  // Search (populated from navbar "See all results" ?name= param — read-only, navbar remounts the page)
+  const search = typeof window !== "undefined"
+    ? (new URLSearchParams(window.location.search).get("name") ?? "")
+    : "";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -232,6 +235,8 @@ export default function CatalogPage() {
   const [genre, setGenre] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [platform, setPlatform] = useState("");
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -336,11 +341,11 @@ export default function CatalogPage() {
         <div className="mb-8" style={{ height: "1px", background: "rgba(251,191,36,0.12)" }} />
 
         {/* ── Body: sidebar + grid ─────────────────────────────── */}
-        <div className="flex gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
 
           {/* ── Sidebar ─────────────────────────────────────────── */}
           <aside
-            className="flex-shrink-0 w-56 rounded-2xl p-5 space-y-6 sticky top-20"
+            className={`w-full lg:w-56 lg:flex-shrink-0 rounded-2xl p-5 space-y-6 lg:sticky lg:top-20 ${filtersOpen ? "block" : "hidden"} lg:block`}
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
           >
             {/* Price range */}
@@ -480,6 +485,25 @@ export default function CatalogPage() {
 
           {/* ── Game grid ────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
+
+            {/* Mobile filters toggle */}
+            <button
+              className="lg:hidden mb-4 flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all"
+              style={{
+                background: filtersOpen ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.06)",
+                color: filtersOpen ? "#fbbf24" : "rgba(255,255,255,0.7)",
+                border: filtersOpen ? "1px solid rgba(251,191,36,0.3)" : "1px solid rgba(255,255,255,0.1)",
+              }}
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+              </svg>
+              {filtersOpen ? "Hide Filters" : "Filters"}
+              {hasSidebarFilters && (
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#fbbf24" }} />
+              )}
+            </button>
 
             {/* Result count */}
             {!loading && total > 0 && (

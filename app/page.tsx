@@ -53,8 +53,7 @@ function HeroBanner({ games }: { games: HomeGame[] }) {
 
   return (
     <div
-      className="relative w-full overflow-hidden select-none"
-      style={{ height: "75vh", minHeight: "560px" }}
+      className="relative w-full overflow-hidden select-none h-[75vh] min-h-[360px] md:min-h-[520px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -105,7 +104,7 @@ function HeroBanner({ games }: { games: HomeGame[] }) {
         key={active}
         className="banner-content-enter absolute inset-0 flex items-center"
       >
-        <div className="mx-auto w-full max-w-7xl px-8">
+        <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
           <div style={{ maxWidth: "520px" }}>
             {/* Pill badge */}
             <div className="inline-flex items-center gap-2 mb-5">
@@ -533,15 +532,11 @@ function GameRow({
 function BannerSkeleton() {
   return (
     <div
-      className="w-full"
-      style={{
-        height: "75vh",
-        minHeight: "560px",
-        background: "linear-gradient(135deg, #0d0d1a 0%, #12121e 100%)",
-      }}
+      className="w-full h-[75vh] min-h-[360px] md:min-h-[520px]"
+      style={{ background: "linear-gradient(135deg, #0d0d1a 0%, #12121e 100%)" }}
     >
       <div className="h-full flex items-center">
-        <div className="mx-auto w-full max-w-7xl px-8 space-y-5">
+        <div className="mx-auto w-full max-w-7xl px-4 md:px-8 space-y-5">
           <div
             className="h-3 w-32 rounded-full animate-pulse"
             style={{ background: "rgba(251,191,36,0.2)" }}

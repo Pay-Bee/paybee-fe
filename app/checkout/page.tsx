@@ -289,7 +289,7 @@ function CheckoutContent() {
         </div>
 
         {/* Two-column body */}
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
           {/* ── Left: forms ──────────────────────────────────── */}
           <div className="flex-1 min-w-0 space-y-8">
@@ -368,7 +368,7 @@ function CheckoutContent() {
           </div>
 
           {/* ── Right: order summary ──────────────────────────── */}
-          <div className="w-80 flex-shrink-0 sticky top-20 self-start">
+          <div className="w-full lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-20 self-start">
             <div
               className="rounded-2xl border p-5 space-y-5"
               style={{

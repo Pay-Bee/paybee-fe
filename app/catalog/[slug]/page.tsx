@@ -90,8 +90,10 @@ export default async function GameDetailPage({
   if (!game) notFound();
 
   const hasDiscount = game.discount_percent > 0;
-  const originalLkr = Math.ceil(game.price_usd * game.fx_rate_used);
   const finalLkr = game.price_lkr;
+  const originalLkr = hasDiscount
+    ? Math.round(finalLkr / (1 - game.discount_percent / 100))
+    : finalLkr;
   const releaseDate = game.release_date?.slice(0, 10) ?? null;
 
   // Build slides: video first, then screenshots
@@ -188,9 +190,9 @@ export default async function GameDetailPage({
         </div>
 
         {/* ── Two-column body ──────────────────────────────────── */}
-        <div className="flex gap-8 pb-20 items-start">
-          {/* Left column */}
-          <div className="flex-1 min-w-0 space-y-8">
+        <div className="flex flex-col lg:flex-row gap-8 pb-20">
+          {/* Left column — below purchase panel on mobile */}
+          <div className="flex-1 min-w-0 space-y-8 order-2 lg:order-1">
             {/* Media slider */}
             {slides.length > 0 && <MediaSlider slides={slides} />}
 
@@ -231,8 +233,8 @@ export default async function GameDetailPage({
             )}
           </div>
 
-          {/* ── Right sidebar ──────────────────────────────────── */}
-          <div className="w-72 flex-shrink-0 sticky top-20 self-start">
+          {/* ── Right sidebar — first on mobile ────────────────── */}
+          <div className="w-full lg:w-72 lg:flex-shrink-0 lg:sticky lg:top-20 order-1 lg:order-2">
             <div
               className="rounded-2xl border p-5 space-y-5"
               style={{
