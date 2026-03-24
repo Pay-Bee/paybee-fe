@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import api from "../../lib/api";
-import type { UserProfile } from "../../lib/types";
+import { useAuth } from "../../lib/AuthContext";
 
 interface SearchResult {
   id: number;
@@ -309,30 +309,26 @@ function RequestGameModal({ onClose }: { onClose: () => void }) {
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const { user, authLoading, setUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [requestOpen, setRequestOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Fetch cart count once when auth resolves
   useEffect(() => {
-    api
-      .get<{ user: UserProfile }>("/auth/me")
-      .then(async (r) => {
-        setUser(r.data.user);
-        const cart = await api.get<{ game_id: number }[]>("/cart");
-        setCartCount(cart.data.length);
-      })
-      .catch(() => { setUser(null); setCartCount(0); });
-  }, []);
+    if (authLoading) return;
+    if (!user) { setCartCount(0); return; }
+    api.get<{ game_id: number }[]>("/cart")
+      .then((r) => setCartCount(r.data.length))
+      .catch(() => setCartCount(0));
+  }, [user, authLoading]);
 
-  // Refresh cart count when an item is added from any page
+  // Optimistic increment when an item is added from any page — no API call
   useEffect(() => {
     function onCartUpdated() {
-      api.get<{ game_id: number }[]>("/cart")
-        .then((r) => setCartCount(r.data.length))
-        .catch(() => {});
+      setCartCount((c) => c + 1);
     }
     window.addEventListener("cart-updated", onCartUpdated);
     return () => window.removeEventListener("cart-updated", onCartUpdated);
@@ -361,6 +357,7 @@ export default function Navbar() {
     localStorage.clear();
     sessionStorage.clear();
     setUser(null);
+    setCartCount(0);
     window.location.href = "/";
   };
 

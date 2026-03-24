@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
+import { useAuth } from "../../../lib/AuthContext";
 
 interface Props {
   slug: string;
@@ -11,7 +12,9 @@ interface Props {
 
 export default function PurchasePanel({ slug, gameId }: Props) {
   const router = useRouter();
-  const [authed, setAuthed] = useState<boolean | null>(null);
+  const { user, authLoading } = useAuth();
+  const authed = authLoading ? null : user !== null;
+  const loading = authLoading;
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   // reset "added" confirmation after 3 s
@@ -21,14 +24,8 @@ export default function PurchasePanel({ slug, gameId }: Props) {
     return () => clearTimeout(t);
   }, [added]);
 
-  useEffect(() => {
-    api.get("/auth/me")
-      .then(() => setAuthed(true))
-      .catch(() => setAuthed(false));
-  }, []);
-
   const loginUrl = `/login?returnTo=${encodeURIComponent(`/catalog/${slug}`)}`;
-  const loading = authed === null;
+
 
   function handleBuyNow() {
     if (authed === false) {

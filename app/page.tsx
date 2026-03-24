@@ -3,8 +3,22 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "../lib/api";
+import GameCard from "../components/GameCard";
 
 const PAGE_BG = "#080810";
+
+// ── Home page cache (module-level, 12-hour TTL) ───────────────
+const homeCache = new Map<string, { data: HomeGame[]; ts: number }>();
+const HOME_CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
+
+function getCached(key: string): HomeGame[] | null {
+  const entry = homeCache.get(key);
+  if (entry && Date.now() - entry.ts < HOME_CACHE_TTL) return entry.data;
+  return null;
+}
+function setCached(key: string, data: HomeGame[]) {
+  homeCache.set(key, { data, ts: Date.now() });
+}
 
 interface HomeGame {
   id: number;
@@ -312,97 +326,6 @@ function HeroBanner({ games }: { games: HomeGame[] }) {
   );
 }
 
-// ── Portrait Game Card ────────────────────────────────────────
-function GameCard({ game }: { game: HomeGame }) {
-  const orig = originalPrice(game.price_lkr, game.discount_percent);
-
-  return (
-    <Link
-      href={`/catalog/${game.slug}`}
-      className="game-card group flex-shrink-0 rounded-xl overflow-hidden border cursor-pointer"
-      style={{
-        width: "185px",
-        background: "rgba(255,255,255,0.04)",
-        borderColor: "rgba(255,255,255,0.09)",
-      }}
-    >
-      {/* Image — portrait 3:4 */}
-      <div className="relative overflow-hidden" style={{ height: "245px" }}>
-        {game.cover_img_url ? (
-          <img
-            src={game.cover_img_url}
-            alt={game.title}
-            className="game-card-img h-full w-full object-cover"
-          />
-        ) : (
-          <div
-            className="h-full w-full flex items-center justify-center text-4xl"
-            style={{ background: "#12121e" }}
-          >
-            🎮
-          </div>
-        )}
-
-        {/* Discount badge */}
-        {game.discount_percent > 0 && (
-          <span
-            className="absolute top-0 left-0 rounded-br-lg px-2 py-1 text-xs font-black text-black"
-            style={{ background: "#fbbf24" }}
-          >
-            -{game.discount_percent}%
-          </span>
-        )}
-
-        {/* Bottom gradient on image */}
-        <div
-          className="absolute bottom-0 left-0 right-0"
-          style={{
-            height: "60px",
-            background:
-              "linear-gradient(to top, rgba(8,8,16,0.95), transparent)",
-          }}
-        />
-      </div>
-
-      {/* Info panel */}
-      <div
-        className="px-3 pt-2 pb-3"
-        style={{ background: "rgba(10,10,20,0.95)" }}
-      >
-        <h3
-          className="text-xs font-semibold text-white leading-tight line-clamp-2 mb-2"
-          style={{ minHeight: "30px" }}
-        >
-          {game.title}
-        </h3>
-
-        {game.price_lkr === 0 ? (
-          <span
-            className="inline-block rounded px-2 py-0.5 text-xs font-bold"
-            style={{ background: "rgba(34,197,94,0.2)", color: "#4ade80" }}
-          >
-            FREE
-          </span>
-        ) : (
-          <div className="flex flex-col gap-0.5">
-            {orig && (
-              <span
-                className="text-xs line-through"
-                style={{ color: "rgba(255,255,255,0.35)" }}
-              >
-                LKR {orig.toLocaleString()}
-              </span>
-            )}
-            <span className="text-sm font-black text-white">
-              LKR {Math.round(game.price_lkr).toLocaleString()}
-            </span>
-          </div>
-        )}
-      </div>
-    </Link>
-  );
-}
-
 // ── Game Row (carousel) ───────────────────────────────────────
 function GameRow({
   title,
@@ -519,7 +442,7 @@ function GameRow({
             className="hide-scrollbar flex gap-4 overflow-x-auto pb-2"
           >
             {games.map((game) => (
-              <GameCard key={game.id} game={game} />
+              <GameCard key={game.id} game={game} className="w-[220px] flex-shrink-0" />
             ))}
           </div>
         </div>
@@ -587,13 +510,15 @@ function RowSkeleton() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="flex-shrink-0 rounded-xl animate-pulse"
-              style={{
-                width: "185px",
-                height: "330px",
-                background: "rgba(255,255,255,0.05)",
-              }}
-            />
+              className="flex-shrink-0 w-[220px] rounded-xl overflow-hidden animate-pulse"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            >
+              <div className="aspect-video" style={{ background: "rgba(255,255,255,0.06)" }} />
+              <div className="px-3 pt-2 pb-3 space-y-2">
+                <div className="h-3 rounded" style={{ background: "rgba(255,255,255,0.07)", width: "80%" }} />
+                <div className="h-4 rounded" style={{ background: "rgba(255,255,255,0.09)", width: "55%" }} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -609,20 +534,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const cachedBanners = getCached("banners");
+    const cachedNew = getCached("new");
+    const cachedBestSellers = getCached("best-sellers");
+
+    if (cachedBanners && cachedNew && cachedBestSellers) {
+      setBanners(cachedBanners);
+      setNewGames(cachedNew);
+      setBestSellers(cachedBestSellers);
+      setLoading(false);
+      return;
+    }
+
     Promise.all([
-      api
-        .get<HomeGame[]>("/catalog/banners")
-        .then((r) => r.data)
-        .catch(() => []),
-      api
-        .get<HomeGame[]>("/catalog/new")
-        .then((r) => r.data)
-        .catch(() => []),
-      api
-        .get<HomeGame[]>("/catalog/best-sellers")
-        .then((r) => r.data)
-        .catch(() => []),
+      api.get<HomeGame[]>("/catalog/banners").then((r) => r.data).catch(() => []),
+      api.get<HomeGame[]>("/catalog/new").then((r) => r.data).catch(() => []),
+      api.get<HomeGame[]>("/catalog/best-sellers").then((r) => r.data).catch(() => []),
     ]).then(([b, n, bs]) => {
+      setCached("banners", b);
+      setCached("new", n);
+      setCached("best-sellers", bs);
       setBanners(b);
       setNewGames(n);
       setBestSellers(bs);

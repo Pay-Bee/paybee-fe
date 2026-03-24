@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import api from "../../lib/api";
 import type { GameListItem } from "../../lib/types";
+import GameCard from "../../components/GameCard";
 
 // ── Constants ─────────────────────────────────────────────────
 const PAGE_SIZE = 40;
@@ -37,81 +37,6 @@ function SkeletonCard() {
         <div className="h-4 rounded" style={{ background: "rgba(255,255,255,0.08)", width: "50%" }} />
       </div>
     </div>
-  );
-}
-
-// ── Game card ─────────────────────────────────────────────────
-function GameCard({ game }: { game: GameListItem }) {
-  const orig = game.discount_percent > 0
-    ? Math.round(game.price_lkr / (1 - game.discount_percent / 100))
-    : null;
-
-  return (
-    <Link
-      href={`/catalog/${game.slug}`}
-      className="game-card group block rounded-xl overflow-hidden border"
-      style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.09)" }}
-    >
-      {/* Cover image — 16:9 so landscape art fills naturally */}
-      <div className="relative overflow-hidden aspect-video">
-        {game.cover_img_url ? (
-          <img
-            src={game.cover_img_url}
-            alt={game.title}
-            className="game-card-img h-full w-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        ) : (
-          <div
-            className="h-full w-full flex items-center justify-center text-4xl"
-            style={{ background: "#12121e" }}
-          >
-            🎮
-          </div>
-        )}
-        {game.discount_percent > 0 && (
-          <span
-            className="absolute top-0 left-0 rounded-br-lg px-2 py-1 text-xs font-black text-black"
-            style={{ background: "#fbbf24" }}
-          >
-            -{game.discount_percent}%
-          </span>
-        )}
-        <div
-          className="absolute bottom-0 left-0 right-0"
-          style={{ height: "60px", background: "linear-gradient(to top, rgba(8,8,16,0.95), transparent)" }}
-        />
-      </div>
-
-      {/* Info panel */}
-      <div className="px-3 pt-2 pb-3" style={{ background: "rgba(10,10,20,0.95)" }}>
-        <h3
-          className="text-xs font-semibold text-white leading-tight line-clamp-2 mb-2"
-          style={{ minHeight: "30px" }}
-        >
-          {game.title}
-        </h3>
-        {game.price_lkr === 0 ? (
-          <span
-            className="inline-block rounded px-2 py-0.5 text-xs font-bold"
-            style={{ background: "rgba(34,197,94,0.2)", color: "#4ade80" }}
-          >
-            FREE
-          </span>
-        ) : (
-          <div className="flex flex-col gap-0.5">
-            {orig && (
-              <span className="text-xs line-through" style={{ color: "rgba(255,255,255,0.3)" }}>
-                LKR {orig.toLocaleString()}
-              </span>
-            )}
-            <span className="text-sm font-black text-white">
-              LKR {Math.round(game.price_lkr).toLocaleString()}
-            </span>
-          </div>
-        )}
-      </div>
-    </Link>
   );
 }
 
@@ -197,6 +122,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ── Catalog cache (module-level, lives for the browser session) ──────────────
+const catalogCache = new Map<string, { data: GameListItem[]; total: number; ts: number }>();
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
 // ── Store page ────────────────────────────────────────────────
 export default function CatalogPage() {
   const [games, setGames] = useState<GameListItem[]>([]);
@@ -258,9 +187,21 @@ export default function CatalogPage() {
       if (priceMin > 0) params.set("minPrice", String(priceMin));
       if (priceMax < PRICE_MAX) params.set("maxPrice", String(priceMax));
 
+      const cacheKey = params.toString();
+      const cached = catalogCache.get(cacheKey);
+      if (cached && Date.now() - cached.ts < CACHE_TTL) {
+        setGames(cached.data);
+        setTotal(cached.total);
+        setLoading(false);
+        return;
+      }
+
       const res = await api.get<{ data: GameListItem[]; total: number }>(`/catalog?${params}`);
-      setGames(res.data.data ?? []);
-      setTotal(res.data.total ?? 0);
+      const data = res.data.data ?? [];
+      const total = res.data.total ?? 0;
+      catalogCache.set(cacheKey, { data, total, ts: Date.now() });
+      setGames(data);
+      setTotal(total);
     } catch (err) {
       console.error("[catalog] fetch failed:", err);
     } finally {
@@ -291,7 +232,7 @@ export default function CatalogPage() {
   };
 
   return (
-    <div className="overflow-x-hidden" style={{ background: "#080810", minHeight: "100vh" }}>
+    <div style={{ background: "#080810", minHeight: "100vh" }}>
       {/* Ambient glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"

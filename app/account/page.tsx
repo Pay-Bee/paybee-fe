@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../lib/api";
-import type { UserProfile } from "../../lib/types";
+import { useAuth } from "../../lib/AuthContext";
 
 function SuccessBanner({ msg }: { msg: string }) {
   return (
@@ -97,8 +97,9 @@ function InputField({
 
 export default function AccountPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, authLoading } = useAuth();
+  const profile = user;
+  const loading = authLoading;
 
   // Personal details state
   const [name, setName] = useState("");
@@ -117,20 +118,18 @@ export default function AccountPage() {
   const [passwordError, setPasswordError] = useState("");
   const passwordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Populate form fields when user loads from context
   useEffect(() => {
-    api
-      .get<{ user: UserProfile }>("/auth/me")
-      .then((r) => {
-        const u = r.data.user;
-        setProfile(u);
-        setName(u.name ?? "");
-        setEmail(u.email);
-      })
-      .catch((err) => {
-        if (err?.response?.status === 401) router.replace("/login");
-      })
-      .finally(() => setLoading(false));
-  }, [router]);
+    if (user) {
+      setName(user.name ?? "");
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) router.replace("/login");
+  }, [authLoading, user, router]);
 
   const isGoogle = profile?.registration_type === "GOOGLE";
 
