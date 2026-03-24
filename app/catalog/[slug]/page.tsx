@@ -189,56 +189,17 @@ export default async function GameDetailPage({
           </div>
         </div>
 
-        {/* ── Media slider — full width above both columns ─────── */}
-        {slides.length > 0 && (
-          <div className="mb-8">
-            <MediaSlider slides={slides} />
-          </div>
-        )}
+        {/* ── Media + price box (side by side desktop, stacked mobile) ── */}
+        <div className="flex flex-col lg:flex-row gap-8 mb-10">
+          {/* Media slider — takes remaining width */}
+          {slides.length > 0 && (
+            <div className="flex-1 min-w-0">
+              <MediaSlider slides={slides} />
+            </div>
+          )}
 
-        {/* ── Two-column body ──────────────────────────────────── */}
-        <div className="flex flex-col lg:flex-row gap-8 pb-20">
-          {/* Left column — features + descriptions */}
-          <div className="flex-1 min-w-0 space-y-8 order-2 lg:order-1">
-            {/* Features */}
-            {game.features && game.features.length > 0 && (
-              <div>
-                <h3
-                  className="mb-3 text-xs font-bold uppercase tracking-[0.2em]"
-                  style={{ color: "rgba(255,255,255,0.4)" }}
-                >
-                  Features
-                </h3>
-                <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
-                  {game.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
-                      <span style={{ color: "#fbbf24", fontSize: "10px" }}>✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Short description */}
-            {game.short_description && (
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                {game.short_description}
-              </p>
-            )}
-
-            {/* Long description */}
-            {game.long_description && (
-              <div
-                className="prose prose-invert prose-sm max-w-none leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-                dangerouslySetInnerHTML={{ __html: game.long_description }}
-              />
-            )}
-          </div>
-
-          {/* ── Right sidebar — first on mobile ────────────────── */}
-          <div className="w-full lg:w-72 lg:flex-shrink-0 lg:sticky lg:top-20 order-1 lg:order-2">
+          {/* Price box — right of media on desktop, below on mobile */}
+          <div className="w-full lg:w-72 lg:flex-shrink-0 lg:sticky lg:top-20">
             <div
               className="rounded-2xl border p-5 space-y-5"
               style={{
@@ -321,6 +282,45 @@ export default async function GameDetailPage({
               />
             </div>
           </div>
+        </div>
+
+        {/* ── Features + descriptions — full width below ───────── */}
+        <div className="space-y-8 pb-20">
+          {/* Features */}
+          {game.features && game.features.length > 0 && (
+            <div>
+              <h3
+                className="mb-3 text-xs font-bold uppercase tracking-[0.2em]"
+                style={{ color: "rgba(255,255,255,0.4)" }}
+              >
+                Features
+              </h3>
+              <ul className="grid grid-cols-2 gap-y-2 gap-x-4">
+                {game.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
+                    <span style={{ color: "#fbbf24", fontSize: "10px" }}>✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Short description */}
+          {game.short_description && (
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+              {game.short_description}
+            </p>
+          )}
+
+          {/* Long description */}
+          {game.long_description && (
+            <div
+              className="prose prose-invert prose-sm max-w-none leading-relaxed"
+              style={{ color: "rgba(255,255,255,0.55)" }}
+              dangerouslySetInnerHTML={{ __html: game.long_description }}
+            />
+          )}
         </div>
       </div>
     </div>

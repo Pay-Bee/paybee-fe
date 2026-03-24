@@ -438,7 +438,7 @@ export default function Navbar() {
 
             {/* User menu — desktop only */}
             <div className="hidden md:block">
-              {user ? (
+              {!authLoading && (user ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setOpen((v) => !v)}
@@ -502,8 +502,27 @@ export default function Navbar() {
                 >
                   Sign In
                 </Link>
-              )}
+              ))}
             </div>
+
+            {/* Avatar — mobile only, shown when logged in */}
+            {!authLoading && user && (
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                className="md:hidden flex items-center justify-center"
+                aria-label="Account menu"
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt="avatar" className="h-7 w-7 rounded-full object-cover ring-1 ring-white/20" />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/20">
+                    <svg className="h-4 w-4 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* Hamburger — mobile only */}
             <button
@@ -572,7 +591,7 @@ export default function Navbar() {
               {user ? (
                 <>
                   {/* User info */}
-                  <div className="flex items-center gap-3 px-3 py-2 mb-1">
+                  <div className="flex items-center px-3 py-2 mb-1">
                     {user.avatar ? (
                       <img src={user.avatar} alt="avatar" className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20 flex-shrink-0" />
                     ) : (
@@ -582,7 +601,6 @@ export default function Navbar() {
                         </svg>
                       </span>
                     )}
-                    <span className="text-sm text-gray-200 truncate">{displayName}</span>
                   </div>
                   <button
                     onClick={() => { setMobileMenuOpen(false); router.push("/account"); }}
